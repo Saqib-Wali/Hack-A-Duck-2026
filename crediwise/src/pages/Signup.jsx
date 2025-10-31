@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -6,6 +7,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -23,12 +25,11 @@ export default function Signup() {
       if (!response.ok) throw new Error(data.detail || "Signup failed");
 
       alert("✅ Account created successfully! You can now log in.");
-
-      setName("");
-      setEmail("");
-      setPassword("");
+      
+      // Redirect to login page after successful signup
+      navigate("/login");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -41,10 +42,10 @@ export default function Signup() {
         backgroundImage: "url('/assets/background.png')",
       }}
     >
-      {/* overlay */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-      {/* signup card */}
+      {/* Signup Card */}
       <div className="relative z-10 w-full max-w-md bg-gray-900/70 rounded-2xl shadow-2xl p-8 border border-gray-700 mx-4">
         <h1 className="text-4xl font-bold mb-2 text-center text-green-400">
           Create Account
