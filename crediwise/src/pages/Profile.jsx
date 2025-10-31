@@ -1,6 +1,9 @@
 import Navbar from "../components/Navbar";
 
 export default function Profile() {
+  const email = localStorage.getItem("userEmail") || "Unknown User";
+  const name = email.split("@")[0];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white">
       <Navbar />
@@ -13,7 +16,7 @@ export default function Profile() {
               <label className="block text-gray-400 mb-2 text-sm">Name</label>
               <input
                 type="text"
-                value="Wali"
+                value={name}
                 className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -22,7 +25,8 @@ export default function Profile() {
               <label className="block text-gray-400 mb-2 text-sm">Email</label>
               <input
                 type="email"
-                value="wali@example.com"
+                value={email}
+                readOnly
                 className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-green-500"
               />
             </div>

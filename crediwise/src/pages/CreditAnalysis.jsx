@@ -12,12 +12,11 @@ export default function CreditAnalysis() {
             Your Financial Overview
           </h3>
           <p className="text-gray-400">
-            We’ll analyze your spending patterns, income ratio, and debt levels to
-            provide a credit score simulation and personalized advice soon.
+            We analyze your spending, income ratio, and debt levels to provide personalized financial insights.
           </p>
 
           <div className="mt-6 text-center text-gray-500">
-            📈 Charts and analytics coming soon...
+            📊 Analytics coming soon...
           </div>
         </div>
       </div>

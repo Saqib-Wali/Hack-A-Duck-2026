@@ -19,10 +19,7 @@ export default function Transactions() {
               placeholder="Amount"
               className="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-green-500"
             />
-            <button
-              type="submit"
-              className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-lg font-semibold"
-            >
+            <button type="submit" className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-lg font-semibold">
               Add Transaction
             </button>
           </form>
