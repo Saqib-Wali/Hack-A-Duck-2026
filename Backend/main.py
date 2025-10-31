@@ -22,7 +22,7 @@ try:
         dbname="CrediWise",        # your PostgreSQL database name
         user="postgres",           # your PostgreSQL username
         password="12345678@",      # your PostgreSQL password
-        host="localhost",
+        host="172.22.145.112",
         port="5432"
     )
     conn.autocommit = True
