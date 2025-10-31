@@ -1,27 +1,30 @@
 import { useState } from "react";
 
-export default function Login() {
+export default function Signup() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/login", {
+      const response = await fetch("http://localhost:8000/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Login failed");
+      if (!response.ok) throw new Error(data.detail || "Signup failed");
 
-      alert(`✅ Logged in as: ${email}`);
+      alert("✅ Account created successfully! You can now log in.");
+
+      setName("");
       setEmail("");
       setPassword("");
     } catch (err) {
@@ -41,13 +44,13 @@ export default function Login() {
       {/* overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-      {/* login card */}
+      {/* signup card */}
       <div className="relative z-10 w-full max-w-md bg-gray-900/70 rounded-2xl shadow-2xl p-8 border border-gray-700 mx-4">
-        <h1 className="text-4xl font-bold mb-2 text-center text-blue-400">
-          CrediWise
+        <h1 className="text-4xl font-bold mb-2 text-center text-green-400">
+          Create Account
         </h1>
         <p className="text-center text-gray-400 mb-8">
-          Welcome back 👋 Sign in to your account
+          Join CrediWise and start your financial journey 🚀
         </p>
 
         {error && (
@@ -56,7 +59,19 @@ export default function Login() {
           </p>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleSignup} className="space-y-5">
+          <div>
+            <label className="block text-gray-300 mb-2 text-sm">Name</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-900/70 border border-gray-700 focus:ring-2 focus:ring-green-500 focus:outline-none text-white"
+              placeholder="John Doe"
+            />
+          </div>
+
           <div>
             <label className="block text-gray-300 mb-2 text-sm">Email</label>
             <input
@@ -64,7 +79,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-900/70 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+              className="w-full p-3 rounded-lg bg-gray-900/70 border border-gray-700 focus:ring-2 focus:ring-green-500 focus:outline-none text-white"
               placeholder="you@example.com"
             />
           </div>
@@ -76,7 +91,7 @@ export default function Login() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-900/70 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
+              className="w-full p-3 rounded-lg bg-gray-900/70 border border-gray-700 focus:ring-2 focus:ring-green-500 focus:outline-none text-white"
               placeholder="••••••••"
             />
           </div>
@@ -84,16 +99,16 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 font-semibold py-3 rounded-lg transition-colors duration-200 disabled:opacity-50"
+            className="w-full bg-green-600 hover:bg-green-500 font-semibold py-3 rounded-lg transition-colors duration-200 disabled:opacity-50"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Creating..." : "Sign Up"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don’t have an account?{" "}
-          <a href="/signup" className="text-blue-400 hover:underline">
-            Sign up
+          Already have an account?{" "}
+          <a href="/login" className="text-green-400 hover:underline">
+            Log in
           </a>
         </p>
       </div>
