@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // 👈 enables navigation
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,9 +23,11 @@ export default function Login() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Login failed");
 
-      alert(`✅ Logged in as: ${email}`);
-      setEmail("");
-      setPassword("");
+      // ✅ Save user info for session (optional)
+      localStorage.setItem("userEmail", email);
+
+      // ✅ Redirect to dashboard
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -38,10 +42,10 @@ export default function Login() {
         backgroundImage: "url('/assets/background.png')",
       }}
     >
-      {/* overlay */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-      {/* login card */}
+      {/* Login Card */}
       <div className="relative z-10 w-full max-w-md bg-gray-900/70 rounded-2xl shadow-2xl p-8 border border-gray-700 mx-4">
         <h1 className="text-4xl font-bold mb-2 text-center text-blue-400">
           CrediWise

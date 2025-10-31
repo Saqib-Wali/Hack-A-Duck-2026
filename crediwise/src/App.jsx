@@ -2,7 +2,11 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup.jsx";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
+import CreditAnalysis from "./pages/CreditAnalysis";
+import Profile from "./pages/Profile";
 
 function HomePage() {
   const [message, setMessage] = useState("");
@@ -46,9 +50,16 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        {/* 🌍 Public Pages */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
+        {/* 🔒 Authenticated Pages */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/transactions" element={<Transactions />} />
+        <Route path="/credit-analysis" element={<CreditAnalysis />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );
