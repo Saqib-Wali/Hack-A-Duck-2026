@@ -6,7 +6,7 @@ import psycopg2
 import bcrypt
 from uuid import uuid4
 from datetime import date
-
+import json
 from AI import generate_text
 from AI import ai_analyze_user
 
@@ -478,28 +478,73 @@ def credit_insights(email: str):
     cur.close()
     return {"insights": tips}
 
-
 @app.post("/ai/chat")
 async def ai_chat(request: Request):
+    """
+    Context-aware AI chat endpoint — gives concise, personalized financial advice
+    using the user's data from the database.
+    """
     data = await request.json()
     message = data.get("message", "")
+    email = data.get("email", None)
+
     if not message:
         return {"error": "Message is required"}
 
     try:
-        response = generate_text(
-            f"You are a friendly credit assistant helping users manage their finances.\n"
-            f"User: {message}\n"
-            f"Assistant:",
-            temperature=0.4,
-            max_output_tokens=500,
-        )
-        return {"reply": response.strip()}
-    except Exception as e:
-        return {"error": str(e)}
-    
+        # 🧩 Fetch financial context if available
+        context = {}
+        if email:
+            from Functions.GetDatabaseInfo import get_database_info
+            context = get_database_info(email)
 
-    # ─────────── AI CREDIT ANALYSIS ───────────
+        # 🧠 Build optimized short-response prompt
+        prompt = (
+            "You are CrediWise AI — a smart, friendly credit and finance assistant. "
+            "You give short, clear, and personalized financial advice based on the user's data.\n\n"
+        )
+
+        if context:
+            prompt += (
+                f"User's latest financial data:\n"
+                f"{json.dumps(context, indent=2)}\n\n"
+            )
+
+        # Short-answer style instructions
+        prompt += (
+            f"User: {message}\n\n"
+            "Assistant: Reply in 1–3 short sentences, directly and to the point. "
+            "Use their financial data (income, expenses, balance, credit utilization, or credit score) if relevant. "
+            "Avoid long explanations, introductions, or generic information. "
+            "Keep it friendly, clear, and practical."
+        )
+
+        # 🧾 Generate Gemini response — shorter output cap
+        response = generate_text(prompt, temperature=0.4, max_output_tokens=150)
+
+        # 🔍 Debug logging (for testing)
+        print("\n🧠 --- Gemini Debug ---")
+        print("PROMPT SENT:\n", prompt)
+        print("RESPONSE:\n", response)
+        print("🧠 --- End Debug ---\n")
+
+        # 🧩 Handle empty or invalid responses
+        if not response.strip():
+            print("⚠️ Gemini returned empty response.")
+            return {
+                "error": "Gemini returned empty response.",
+                "reply": "Sorry, I couldn’t generate an answer right now. Please try again."
+            }
+
+        return {"reply": response.strip()}
+
+    except Exception as e:
+        print("❌ AI Chat Error:", str(e))
+        return {"error": str(e), "reply": "Something went wrong while generating a response."}
+
+
+
+# ─────────── AI CREDIT ANALYSIS ───────────
 @app.get("/ai/credit_analysis/{email}")
 async def ai_credit_analysis(email: str):
     """
@@ -510,4 +555,5 @@ async def ai_credit_analysis(email: str):
         result = ai_analyze_user(email)
         return result
     except Exception as e:
+        print("❌ AI Credit Analysis Error:", str(e))
         return {"error": str(e)}
