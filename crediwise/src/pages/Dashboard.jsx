@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const COLORS = ["#00C49F", "#FF4444", "#0088FE"];
+  const COLORS = ["#22c55e", "#ef4444", "#0ea5e9"]; // green, red, blue
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
@@ -21,13 +21,11 @@ export default function Dashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        // Get user data
         const userRes = await fetch(`http://localhost:8000/user/${email}`);
         const userData = await userRes.json();
         if (!userRes.ok) throw new Error(userData.detail || "User not found");
         setUser(userData.user);
 
-        // Get user transactions
         const txRes = await fetch(`http://localhost:8000/transactions/${email}`);
         const txData = await txRes.json();
         if (!txRes.ok) throw new Error(txData.detail || "Failed to fetch transactions");
@@ -35,7 +33,6 @@ export default function Dashboard() {
         const txs = txData.transactions || [];
         setTransactions(txs);
 
-        // Compute balance
         const income = txs.filter(t => t.amount > 0).reduce((a, b) => a + Number(b.amount), 0);
         const expenses = txs.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(Number(b.amount)), 0);
         const balance = income - expenses;
@@ -57,7 +54,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#070B14] to-[#0B0F17] text-white">
         <p className="animate-pulse text-lg">Loading Dashboard...</p>
       </div>
     );
@@ -69,46 +66,63 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#070B14] via-[#0C1525] to-[#0B0F17] text-white overflow-y-auto">
       <Navbar />
-      <main className="p-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-4xl font-bold text-green-400">
-            Welcome, {user.username || "User"} 👋
-          </h2>
+
+      <main className="max-w-7xl mx-auto p-8 space-y-10">
+        {/* Welcome Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">
+              Welcome back, {user.username || "User"} 👋
+            </h2>
+            <p className="text-gray-400 mt-1">
+              Here’s your financial overview today
+            </p>
+          </div>
+
           <button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-lg font-semibold"
+            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-red-900/30 transition-all"
           >
             Logout
           </button>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-6 mb-10">
-          <div className="bg-gray-800/70 p-6 rounded-xl shadow-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Balance */}
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/20">
             <p className="text-gray-400 text-sm">Total Balance</p>
-            <h3 className="text-2xl font-bold mt-2">${summary.balance.toFixed(2)}</h3>
+            <h3 className="text-3xl font-bold mt-2 text-cyan-400">
+              ${summary.balance.toFixed(2)}
+            </h3>
           </div>
-          <div className="bg-gray-800/70 p-6 rounded-xl shadow-lg">
+
+          {/* Income */}
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/20">
             <p className="text-gray-400 text-sm">Total Income</p>
-            <h3 className="text-2xl font-bold text-green-400 mt-2">
+            <h3 className="text-3xl font-bold mt-2 text-green-400">
               +${summary.income.toFixed(2)}
             </h3>
           </div>
-          <div className="bg-gray-800/70 p-6 rounded-xl shadow-lg">
+
+          {/* Expenses */}
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg shadow-black/20">
             <p className="text-gray-400 text-sm">Total Expenses</p>
-            <h3 className="text-2xl font-bold text-red-400 mt-2">
+            <h3 className="text-3xl font-bold mt-2 text-red-400">
               -${summary.expenses.toFixed(2)}
             </h3>
           </div>
         </div>
 
         {/* Chart + Transactions */}
-        <div className="grid grid-cols-3 gap-8">
-          <div className="col-span-1 bg-gray-800/70 p-6 rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Income vs Expenses</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Chart Card */}
+          <div className="col-span-1 bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20">
+            <h3 className="text-lg font-semibold mb-4 text-gray-200">
+              Income vs Expenses
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
@@ -117,39 +131,60 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={80}
+                  outerRadius={90}
                   label
                 >
                   {chartData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#111827",
+                    border: "1px solid #1f2937",
+                    borderRadius: "8px",
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div className="flex justify-around mt-4 text-sm">
+              <p className="text-green-400">Income</p>
+              <p className="text-red-400">Expenses</p>
+            </div>
           </div>
 
-          <div className="col-span-2 bg-gray-800/70 p-6 rounded-xl shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Recent Transactions</h3>
+          {/* Transactions List */}
+          <div className="col-span-2 bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-lg shadow-black/20">
+            <h3 className="text-lg font-semibold mb-4 text-gray-200">
+              Recent Transactions
+            </h3>
 
             {transactions.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">No transactions found.</p>
+              <p className="text-gray-500 text-center py-6 italic">
+                No transactions found.
+              </p>
             ) : (
-              <div className="divide-y divide-gray-700/50">
-                {transactions.map((tx) => (
-                  <div key={tx.id} className="py-3 flex justify-between">
+              <div className="divide-y divide-white/10">
+                {transactions.slice(0, 6).map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="py-3 flex justify-between items-center hover:bg-white/10 transition-all rounded-lg px-3"
+                  >
                     <div>
-                      <p className="font-semibold">{tx.description || "Transaction"}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="font-medium text-gray-200">
+                        {tx.description || "Transaction"}
+                      </p>
+                      <p className="text-sm text-gray-500">
                         {new Date(tx.transaction_date).toLocaleDateString()}
                       </p>
                     </div>
                     <p
-                      className={`font-semibold ${
+                      className={`font-semibold text-lg ${
                         tx.amount > 0 ? "text-green-400" : "text-red-400"
                       }`}
                     >
-                      {tx.amount > 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                      {tx.amount > 0 ? "+" : "-"}$
+                      {Math.abs(tx.amount).toFixed(2)}
                     </p>
                   </div>
                 ))}

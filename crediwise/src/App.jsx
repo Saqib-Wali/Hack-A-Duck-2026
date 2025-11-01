@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import CreditAnalysis from "./pages/CreditAnalysis";
 import Profile from "./pages/Profile";
+import CreditEducation from "./pages/CreditEducation";
+
 
 function HomePage() {
   const [message, setMessage] = useState("");
@@ -60,6 +62,8 @@ export default function App() {
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/credit-analysis" element={<CreditAnalysis />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/credit-education" element={<CreditEducation />} />
+
       </Routes>
     </Router>
   );
