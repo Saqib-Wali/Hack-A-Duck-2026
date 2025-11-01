@@ -8,6 +8,8 @@ import Transactions from "./pages/Transactions";
 import CreditAnalysis from "./pages/CreditAnalysis";
 import Profile from "./pages/Profile";
 import CreditEducation from "./pages/CreditEducation";
+import FrontPage from "./pages/FrontPage";
+
 
 
 function HomePage() {
@@ -53,7 +55,8 @@ export default function App() {
     <Router>
       <Routes>
         {/* 🌍 Public Pages */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<FrontPage />} />
+        {/* <Route path="/" element={<HomePage />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
