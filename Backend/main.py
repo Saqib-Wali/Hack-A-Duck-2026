@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -6,6 +6,10 @@ import psycopg2
 import bcrypt
 from uuid import uuid4
 from datetime import date
+
+from AI import generate_text
+from AI import ai_analyze_user
+
 
 app = FastAPI()
 
@@ -473,3 +477,37 @@ def credit_insights(email: str):
 
     cur.close()
     return {"insights": tips}
+
+
+@app.post("/ai/chat")
+async def ai_chat(request: Request):
+    data = await request.json()
+    message = data.get("message", "")
+    if not message:
+        return {"error": "Message is required"}
+
+    try:
+        response = generate_text(
+            f"You are a friendly credit assistant helping users manage their finances.\n"
+            f"User: {message}\n"
+            f"Assistant:",
+            temperature=0.4,
+            max_output_tokens=500,
+        )
+        return {"reply": response.strip()}
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+    # ─────────── AI CREDIT ANALYSIS ───────────
+@app.get("/ai/credit_analysis/{email}")
+async def ai_credit_analysis(email: str):
+    """
+    Generates AI-powered financial insights for the given user.
+    Used by the CreditAnalysis page.
+    """
+    try:
+        result = ai_analyze_user(email)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
