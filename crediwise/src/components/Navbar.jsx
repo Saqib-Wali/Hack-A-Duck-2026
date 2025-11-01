@@ -22,9 +22,9 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#0b0f17]/80 border-b border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.4)]">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
-        {/* ✅ Brand Logo — now links to the FrontPage ("/") */}
+        {/* Brand Logo */}
         <Link
-          to="/"
+          to="/dashboard"
           className="text-3xl font-extrabold bg-gradient-to-r from-green-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent select-none tracking-tight"
         >
           CrediWise

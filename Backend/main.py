@@ -557,3 +557,163 @@ async def ai_credit_analysis(email: str):
     except Exception as e:
         print("❌ AI Credit Analysis Error:", str(e))
         return {"error": str(e)}
+
+
+# ─────────── SAVINGS CHALLENGES ───────────
+@app.get("/challenges/{email}")
+def get_user_challenges(email: str):
+    """
+    Fetch all active and completed savings challenges for a user.
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, user_email, title, goal_amount, progress, start_date, end_date, completed
+            FROM savings_challenges
+            WHERE user_email = %s;
+        """, (email,))
+        rows = cur.fetchall()
+
+        challenges = [
+            {
+                "id": r[0],
+                "user_email": r[1],
+                "title": r[2],
+                "goal_amount": float(r[3]),
+                "progress": float(r[4]),
+                "start_date": r[5],
+                "end_date": r[6],
+                "completed": bool(r[7]),
+            }
+            for r in rows
+        ]
+
+        cur.close()
+        return {"challenges": challenges}
+
+    except Exception as e:
+        print("❌ Error fetching challenges:", str(e))
+        return {"error": str(e), "challenges": []}
+
+
+@app.post("/challenges/add")
+def add_challenge(data: dict = Body(...)):
+    """
+    Add a new savings challenge for a user.
+    Example body:
+    {
+      "email": "user@example.com",
+      "title": "Save $200 this month",
+      "goal_amount": 200
+    }
+    """
+    try:
+        email = data.get("email")
+        title = data.get("title")
+        goal_amount = data.get("goal_amount", 0)
+
+        if not email or not title or goal_amount <= 0:
+            raise HTTPException(status_code=400, detail="Invalid input")
+
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO savings_challenges (user_email, title, goal_amount, progress, completed)
+            VALUES (%s, %s, %s, %s, %s);
+        """, (email, title, goal_amount, 0, False))
+        conn.commit()
+        cur.close()
+
+        return {"message": "✅ Challenge added successfully!"}
+
+    except Exception as e:
+        print("❌ Error adding challenge:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/challenges/delete/{challenge_id}")
+def delete_challenge(challenge_id: str):
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM savings_challenges WHERE id = %s;", (challenge_id,))
+        conn.commit()
+        cur.close()
+        return {"message": "✅ Challenge deleted successfully!"}
+    except Exception as e:
+        print("❌ Error deleting challenge:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/challenges/update_progress")
+def update_challenge_progress(data: dict = Body(...)):
+    """
+    Update progress for a savings challenge.
+    Example:
+    {
+        "challenge_id": "ch_123",
+        "amount": 20
+    }
+    """
+    try:
+        challenge_id = data.get("challenge_id")
+        amount = float(data.get("amount", 0))
+        if not challenge_id or amount <= 0:
+            raise HTTPException(status_code=400, detail="Invalid input")
+
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE savings_challenges
+            SET progress = progress + %s,
+                completed = CASE WHEN progress + %s >= goal_amount THEN TRUE ELSE completed END
+            WHERE id = %s
+            RETURNING goal_amount, progress + %s >= goal_amount;
+        """, (amount, amount, challenge_id, amount))
+        row = cur.fetchone()
+        conn.commit()
+        cur.close()
+
+        if row and row[1]:
+            return {"message": "🎉 Goal completed! You’ve reached your savings target!"}
+        return {"message": "✅ Progress updated successfully!"}
+
+    except Exception as e:
+        print("❌ Error updating challenge progress:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────── AI MOTIVATION ENDPOINT ───────────
+@app.get("/challenges/motivate/{email}")
+def motivate_user(email: str):
+    """
+    Use AI to generate an encouraging message based on user's saving progress.
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT title, goal_amount, progress
+            FROM savings_challenges
+            WHERE user_email = %s;
+        """, (email,))
+        rows = cur.fetchall()
+        cur.close()
+
+        # 🟢 No goals yet — return friendly fallback (no 404)
+        if not rows:
+            return {"message": "Start your first saving goal today and make it happen! 💪"}
+
+        context = [{"title": r[0], "goal": float(r[1]), "progress": float(r[2])} for r in rows]
+        prompt = (
+            "You are a cheerful financial coach. Encourage this user based on their saving goals:\n"
+            f"{json.dumps(context, indent=2)}\n"
+            "Respond in one short motivational sentence."
+        )
+
+        response = generate_text(prompt, temperature=0.6, max_output_tokens=80)
+        if not response.strip():
+            return {"message": "Keep pushing toward your goals — every dollar counts! 💚"}
+
+        return {"message": response.strip()}
+
+    except Exception as e:
+        print("❌ Motivation error:", str(e))
+        # Fallback friendly message (instead of 404)
+        return {"message": "Stay consistent — you’re building great financial habits! 🌟"}
