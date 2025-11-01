@@ -1,8 +1,6 @@
-# AI.py
 import os
 import json
 from typing import Any, Dict, Optional, Callable
-
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -14,25 +12,19 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
-
 model = genai.GenerativeModel(MODEL_NAME)
 
 # ── Import function utilities ───────────────────────────────────
 from Functions.GetDatabaseInfo import get_database_info
-
 
 # ── TOOL REGISTRY ────────────────────────────────────────────────
 TOOLS: Dict[str, Callable[..., Any]] = {
     "get_database_info": get_database_info,
 }
 
-
 def list_available_tools() -> Dict[str, Any]:
-    """
-    Returns a list of available tool names.
-    """
+    """ Returns a list of available tool names. """
     return {"tools": list(TOOLS.keys())}
-
 
 # ── TEXT GENERATION ─────────────────────────────────────────────
 def generate_text(
@@ -61,7 +53,6 @@ def generate_text(
 
     resp = _model.generate_content(prompt, generation_config=generation_config)
     return getattr(resp, "text", "") or ""
-
 
 # ── JSON GENERATION ─────────────────────────────────────────────
 def generate_json(
@@ -96,34 +87,24 @@ def generate_json(
             return json.loads(text[start:end + 1])
         raise
 
-
 # ── FUNCTION CALLING INTERFACE ──────────────────────────────────
 def run_ai_tool(tool_name: str, *args, **kwargs) -> Any:
-    """
-    Executes a tool (function) from the TOOLS registry dynamically.
-    Example: run_ai_tool("get_database_info", email="test@example.com")
-    """
+    """ Executes a tool (function) from the TOOLS registry dynamically. """
     if tool_name not in TOOLS:
         return {"error": f"Tool '{tool_name}' not found.", "available": list(TOOLS.keys())}
-
     try:
         result = TOOLS[tool_name](*args, **kwargs)
         return {"tool": tool_name, "result": result}
     except Exception as e:
         return {"error": str(e), "tool": tool_name}
 
-
-# ── AI-AWARE DECISION ENGINE (for future) ───────────────────────
+# ── AI ANALYSIS (Used by /ai/credit_analysis) ───────────────────
 def ai_analyze_user(email: str) -> Dict[str, Any]:
-    """
-    Example of a higher-level AI call that uses Gemini + a backend function.
-    Fetches the user's database info, then asks Gemini to summarize advice.
-    """
+    """Uses Gemini to analyze user financial data."""
     db_info = get_database_info(email)
     if "error" in db_info:
         return db_info
 
-    # Compose intelligent prompt for Gemini
     prompt = (
         f"Here is a user's financial data:\n{json.dumps(db_info, indent=2)}\n\n"
         "Analyze this and return JSON with three personalized financial improvement tips. "
@@ -134,10 +115,6 @@ def ai_analyze_user(email: str) -> Dict[str, Any]:
     ai_response = generate_json(prompt, schema_hint=schema)
     return {"analysis": ai_response, "raw_data": db_info}
 
-
 # ─── Optional: Direct test ──────────────────────────────────────
 if __name__ == "__main__":
     print("🔧 Available tools:", list_available_tools())
-    # Example usage:
-    # print(run_ai_tool("get_database_info", email="test@example.com"))
-    # print(ai_analyze_user("test@example.com"))

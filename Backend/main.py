@@ -11,6 +11,7 @@ from AI import generate_text
 from AI import ai_analyze_user
 
 
+
 app = FastAPI()
 
 # ─────────────────────────────────────────────────────────────
@@ -679,41 +680,3 @@ def update_challenge_progress(data: dict = Body(...)):
         print("❌ Error updating challenge progress:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ─────────── AI MOTIVATION ENDPOINT ───────────
-@app.get("/challenges/motivate/{email}")
-def motivate_user(email: str):
-    """
-    Use AI to generate an encouraging message based on user's saving progress.
-    """
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT title, goal_amount, progress
-            FROM savings_challenges
-            WHERE user_email = %s;
-        """, (email,))
-        rows = cur.fetchall()
-        cur.close()
-
-        # 🟢 No goals yet — return friendly fallback (no 404)
-        if not rows:
-            return {"message": "Start your first saving goal today and make it happen! 💪"}
-
-        context = [{"title": r[0], "goal": float(r[1]), "progress": float(r[2])} for r in rows]
-        prompt = (
-            "You are a cheerful financial coach. Encourage this user based on their saving goals:\n"
-            f"{json.dumps(context, indent=2)}\n"
-            "Respond in one short motivational sentence."
-        )
-
-        response = generate_text(prompt, temperature=0.6, max_output_tokens=80)
-        if not response.strip():
-            return {"message": "Keep pushing toward your goals — every dollar counts! 💚"}
-
-        return {"message": response.strip()}
-
-    except Exception as e:
-        print("❌ Motivation error:", str(e))
-        # Fallback friendly message (instead of 404)
-        return {"message": "Stay consistent — you’re building great financial habits! 🌟"}
