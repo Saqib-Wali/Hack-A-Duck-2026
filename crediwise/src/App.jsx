@@ -7,6 +7,10 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import CreditAnalysis from "./pages/CreditAnalysis";
 import Profile from "./pages/Profile";
+import CreditEducation from "./pages/CreditEducation";
+import FrontPage from "./pages/FrontPage";
+
+
 
 function HomePage() {
   const [message, setMessage] = useState("");
@@ -51,7 +55,8 @@ export default function App() {
     <Router>
       <Routes>
         {/* 🌍 Public Pages */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<FrontPage />} />
+        {/* <Route path="/" element={<HomePage />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
@@ -60,6 +65,8 @@ export default function App() {
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/credit-analysis" element={<CreditAnalysis />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/credit-education" element={<CreditEducation />} />
+
       </Routes>
     </Router>
   );
